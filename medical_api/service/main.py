@@ -4,7 +4,7 @@ from common.logger import init_logger
 from settings import settings
 
 from .api import Api, make_app
-from .routes import questionnaire_api
+from .routes import questionnaire_api, temp_api
 
 
 app = make_app()
@@ -20,7 +20,7 @@ if not settings.DEBUG:
 
 api_v1 = Api()
 api_v1.include_router(questionnaire_api, prefix="/q")
-
+api_v1.include_router(temp_api, prefix="/temp")
 
 @app.get("/healthz", tags=["health check"])
 async def root() -> Dict[str, str]:
