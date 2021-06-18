@@ -1,0 +1,58 @@
+version: "3.4"
+
+networks:
+  default:
+
+services:
+  api:
+    container_name: medical-api
+    expose:
+      - 8080
+    ports:
+      - "8080:8080"
+    build:
+      context: medical_api
+      dockerfile: deployment/server/Dockerfile
+      target: dev
+      args:
+        RUN_LEVEL: dev
+    volumes:
+      - ./medical_api:/opt/app
+    networks:
+      - default
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: medical-postgres
+    expose:
+      - 5432
+    image: library/postgres:13
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.docker_data/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: medical
+    networks:
+      - default
+
+  nginx:
+    container_name: medical-nginx
+    expose:
+      - 80
+    build:
+      context: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx
+    depends_on:
+      - api
+    networks:
+      - default
