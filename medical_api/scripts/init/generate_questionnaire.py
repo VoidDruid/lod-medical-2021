@@ -1,20 +1,21 @@
 from dataplane import neo4j
-
 from scripts.utils import info, title
 
 
 def format_q(q):
     return f""
 
+
 # Слайдер с форматированием
 # И ответы на вопросы с выбором без
 
 
 def main() -> None:
-    print(info('Generating questionnaire'))
+    print(info("Generating questionnaire"))
 
     def generator(tx):
-        tx_return = tx.run("""
+        tx_return = tx.run(
+            """
         CREATE (RepeatedVisit:Result {})
         CREATE (Ambulance:Result {})
         CREATE (HouseCall:Result {})
@@ -26,7 +27,8 @@ def main() -> None:
         CREATE (
         
         
-        """)
+        """
+        )
         return tx_return.single()
 
     result = neo4j.run_sync(generator)
@@ -37,5 +39,5 @@ def main() -> None:
         print(format_q(q))
 
 
-if __name__ == '__main__':
-    raise RuntimeError('Do not run scripts directly!')
+if __name__ == "__main__":
+    raise RuntimeError("Do not run scripts directly!")

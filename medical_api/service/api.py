@@ -9,6 +9,7 @@ from loguru import logger
 from starlette.requests import Request
 
 import settings
+from domain.exceptions import DomainError
 
 from .schemas import ErrorResponse
 
@@ -48,6 +49,13 @@ def set_middlewares(app: FastAPI) -> None:
         return UJSONResponse(
             status_code=422,
             content={"ok": False, "error": exc.errors()},
+        )
+
+    @app.exception_handler(DomainError)
+    def domain_error_handler(request: Request, exc: DomainError) -> UJSONResponse:
+        return UJSONResponse(
+            status_code=400,
+            content={"ok": False, "error": exc.msg},
         )
 
     @app.exception_handler(Error)

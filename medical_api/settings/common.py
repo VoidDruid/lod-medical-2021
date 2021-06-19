@@ -1,7 +1,6 @@
 import os
 
-from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, Field
-from sqlalchemy.engine.url import make_url
+from pydantic import AnyUrl, BaseSettings
 
 
 class Settings(BaseSettings):
@@ -14,45 +13,14 @@ class Settings(BaseSettings):
     )
 
 
-class DatabaseSettings(BaseSettings):
-    username: str
-    password: str
-    url: AnyUrl
-    db_schema: str
-    db_name: str
-
-    @property
-    def full_url_async(self) -> str:
-        """
-        URL (DSN) путь для подключения к базе данных вместе
-        с username и password с указанием асинхронного драйвера
-        """
-        url = make_url(self.url + self.db_name)
-        url = url.set(
-            drivername="postgresql+asyncpg",
-            username=self.username,
-            password=self.password,
-        )
-        return str(url)
-
-    @property
-    def full_url_sync(self) -> str:
-        """ "
-        URL (DSN) путь для подключения к базе данных вместе
-        с username и password с указанием синхронного драйвера
-        """
-        url = make_url(self.url + self.db_name)
-        url = url.set(
-            drivername="postgresql",
-            username=self.username,
-            password=self.password,
-        )
-        return str(url)
+class MongoSettings(BaseSettings):
+    uri: AnyUrl
+    db: str
 
     class Config:
-        env_prefix = "database_"
+        env_prefix = "mongo_"
         env_file_encoding = "utf8"
-        env_file = os.getenv("DATABASE_ENV_FILE", "./.env.local")
+        env_file = os.getenv("MONGO_ENV_FILE", "./.env.local")
         extra = "ignore"
 
 
@@ -79,7 +47,7 @@ class Neo4jSettings(BaseSettings):
 
 
 settings = Settings()
-database_settings = DatabaseSettings()
+mongo_settings = MongoSettings()
 redis_settings = RedisSettings()
 neo4j_settings = Neo4jSettings()
 

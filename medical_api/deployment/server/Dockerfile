@@ -26,7 +26,6 @@ COPY settings ./settings
 COPY dataplane ./dataplane
 COPY common ./common
 COPY service ./service
-COPY crud ./crud
 COPY domain ./domain
 
 COPY deployment/pre_start.py ./

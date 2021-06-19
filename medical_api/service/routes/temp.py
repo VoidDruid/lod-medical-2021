@@ -1,24 +1,20 @@
 # pylint: disable=C0413
 
-from typing import List, Any
+from typing import Any
 
-from fastapi import Depends
 from neo4j import Transaction
-from sqlalchemy.orm import Session
 
-import crud
-from service.api import Api
-from service.dependencies import get_redis
 from dataplane import neo4j
-
 from domain.schemas import (
-    ScaleQuestion,
-    SingleChoiceQuestion,
     MultipleChoiceQuestion,
-    SingleChoiceResponse,
     MultipleChoiceResponse,
+    ScaleQuestion,
     ScaleResponse,
+    SingleChoiceQuestion,
+    SingleChoiceResponse, BodySchemaQuestion,
 )
+from service.api import Api
+
 
 api: Api = Api(tags=["ВРЕМЕННО"])
 
@@ -28,13 +24,28 @@ def variant_1(scale_response: ScaleResponse):
     pass
 
 
-@api.post("/single-choice", response_model=SingleChoiceQuestion, name="ДЕМОНСТРАЦИОННЫЙ РОУТ")
+@api.post(
+    "/single-choice", response_model=SingleChoiceQuestion, name="ДЕМОНСТРАЦИОННЫЙ РОУТ"
+)
 def variant_1(choice_response: SingleChoiceResponse):
     pass
 
 
-@api.post("/multiple-choice", response_model=MultipleChoiceQuestion, name="ДЕМОНСТРАЦИОННЫЙ РОУТ")
+@api.post(
+    "/multiple-choice",
+    response_model=MultipleChoiceQuestion,
+    name="ДЕМОНСТРАЦИОННЫЙ РОУТ",
+)
 def variant_1(choices_response: MultipleChoiceResponse):
+    pass
+
+
+@api.post(
+    "/body-schema",
+    response_model=BodySchemaQuestion,
+    name="ДЕМОНСТРАЦИОННЫЙ РОУТ",
+)
+def variant_1(choices_response: SingleChoiceResponse):
     pass
 
 
@@ -63,4 +74,5 @@ async def variant_1() -> Any:
         drop_all = "MATCH (n) DETACH DELETE n"
         result = tx.run(create_all).single()
         return result
+
     return await neo4j(q)

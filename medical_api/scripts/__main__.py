@@ -5,15 +5,16 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import click
 import inquirer
 
+
 AnyDict = Dict[str, Any]
 
-BACK_CHOICE = '<Back>'
-EXIT_CHOICE = '<Exit>'
+BACK_CHOICE = "<Back>"
+EXIT_CHOICE = "<Exit>"
 
 
 def make_scripts_dict(base_dir: Path) -> AnyDict:
@@ -22,8 +23,8 @@ def make_scripts_dict(base_dir: Path) -> AnyDict:
         scripts = list(
             filter(
                 lambda filename: (
-                    not filename.startswith('__')
-                    and (filename.endswith('.py') or filename.endswith('.sh'))
+                    not filename.startswith("__")
+                    and (filename.endswith(".py") or filename.endswith(".sh"))
                 ),
                 files,
             )
@@ -34,42 +35,53 @@ def make_scripts_dict(base_dir: Path) -> AnyDict:
 
 
 def choose_dir(scripts_dict: AnyDict, base_dir: Path) -> str:
-    choices = list(map(lambda directory: directory[len(str(base_dir)) + 1 :], scripts_dict.keys()))[
-        1:
-    ]
+    choices = list(
+        map(lambda directory: directory[len(str(base_dir)) + 1 :], scripts_dict.keys())
+    )[1:]
     choices.append(EXIT_CHOICE)
 
-    prompt = 'Type'
+    prompt = "Type"
     questions = [
-        inquirer.List(prompt, message='Choose type', choices=choices,),
+        inquirer.List(
+            prompt,
+            message="Choose type",
+            choices=choices,
+        ),
     ]
     return inquirer.prompt(questions)[prompt]
 
 
 def choose_script(scripts: List[str]) -> str:
-    prompt = 'Script'
+    prompt = "Script"
     scripts.append(BACK_CHOICE)
     questions = [
-        inquirer.List(prompt, message='Choose script', choices=scripts,),
+        inquirer.List(
+            prompt,
+            message="Choose script",
+            choices=scripts,
+        ),
     ]
     return inquirer.prompt(questions)[prompt]
 
 
 def run_script(path_to_script: Path) -> None:
-    with open(str(path_to_script), 'r') as script_file:
-        executable = script_file.readline().startswith('#!')
+    with open(str(path_to_script), "r") as script_file:
+        executable = script_file.readline().startswith("#!")
 
     script = str(path_to_script.relative_to(Path(sys.argv[0]).parent))
-    executor = 'python' if script.endswith('py') else 'bash'
-    base_package_path, script_module_path = script.split('/')
-    script_module_path = script_module_path.replace('.py', '')
+    executor = "python" if script.endswith("py") else "bash"
+    base_package_path, script_module_path = script.split("/")
+    script_module_path = script_module_path.replace(".py", "")
 
     terminal_width = shutil.get_terminal_size((80, 20))[0]
 
-    print('Running script: ', script)
+    print("Running script: ", script)
     print()
-    print('-' * terminal_width)
-    print(' ' * ((terminal_width - len(script_module_path)) // 2) + script_module_path.upper())
+    print("-" * terminal_width)
+    print(
+        " " * ((terminal_width - len(script_module_path)) // 2)
+        + script_module_path.upper()
+    )
 
     if executable:
         try:
@@ -78,14 +90,16 @@ def run_script(path_to_script: Path) -> None:
             os.chmod(script, os.stat(script).st_mode | stat.S_IEXEC)
             subprocess.call(script)
     else:
-        if executor == 'python':
+        if executor == "python":
             base_package = importlib.import_module(base_package_path)
             base_package.validate()  # type:ignore
 
-            script_module = importlib.import_module(f'{base_package_path}.{script_module_path}')
+            script_module = importlib.import_module(
+                f"{base_package_path}.{script_module_path}"
+            )
             script_module.main()  # type:ignore
         else:
-            subprocess.call(['bash', script])
+            subprocess.call(["bash", script])
 
 
 def get_script(base_dir: Path) -> Path:
@@ -107,7 +121,9 @@ def get_script(base_dir: Path) -> Path:
 
 @click.command()
 @click.argument(
-    'script', nargs=1, required=False,
+    "script",
+    nargs=1,
+    required=False,
 )
 def run(script: Optional[str] = None) -> None:
     """Run service scripts easily"""
@@ -120,5 +136,5 @@ def run(script: Optional[str] = None) -> None:
     run_script(to_run)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

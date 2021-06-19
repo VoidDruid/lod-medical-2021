@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -14,12 +14,25 @@ class ScaleItem(BaseModel):
     description: str
 
 
-class Question(BaseModel):
+# --- Questions ---
+
+
+class BaseResponse(BaseModel):
     title: str
-    text: str
+
+
+class Question(BaseResponse):
+    type: str
+    id: int
+    text: str = ""
+
+
+class BodySchemaQuestion(Question):
+    type = "body"
 
 
 class ScaleQuestion(Question):
+    type = "scale"
     min: int
     max: int
     step: int = 1
@@ -27,7 +40,6 @@ class ScaleQuestion(Question):
 
 
 class ChoiceQuestion(Question):
-    type: str
     answers: List[ChoiceOption]
 
 
@@ -38,6 +50,21 @@ class SingleChoiceQuestion(ChoiceQuestion):
 class MultipleChoiceQuestion(ChoiceQuestion):
     type = "multiple"
     max_choices: int = 0
+
+
+class DoctorChoice(BaseModel):
+    name: str
+    clinic: str
+    avatar: str = ""
+
+
+class ResultModel(BaseResponse):
+    items: Optional[List[DoctorChoice]]
+
+
+QUESTION_MODELS = (ScaleQuestion, SingleChoiceQuestion, MultipleChoiceQuestion, BodySchemaQuestion)
+QuestionModel = Union[QUESTION_MODELS]
+AnswerResponseModel = Union[(*QUESTION_MODELS, ResultModel)]
 
 
 # --- Responses ---
@@ -57,3 +84,6 @@ class MultipleChoiceResponse(QuestionResponse):
 
 class ScaleResponse(QuestionResponse):
     value: int
+
+
+AnswerModel = Union[ScaleResponse, SingleChoiceResponse, MultipleChoiceResponse]

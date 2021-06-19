@@ -24,7 +24,9 @@ services:
     env_file:
       - .env.local
     depends_on:
-      - postgres
+      - mongo
+      - redis
+      - neo4j
 
   mongo:
     container_name: medical-mongo
@@ -39,6 +41,7 @@ services:
       - default
     volumes:
       - ./.docker_data/mongo:/data/db
+      - ./docker-init/mongo:/docker-entrypoint-initdb.d
 
   neo4j:
     container_name: medical-neo4j
