@@ -7,10 +7,7 @@ from pydantic import BaseModel
 
 from dataplane import get_redis
 from domain.questions import get_next_response
-from domain.schemas import (
-    AnswerModel,
-    AnswerResponseModel,
-)
+from domain.schemas import AnswerModel, AnswerResponseModel
 from domain.session import create_session
 from service.api import Api
 

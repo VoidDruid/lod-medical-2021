@@ -84,4 +84,6 @@ class ScaleResponse(QuestionResponse):
     value: int
 
 
-AnswerModel = Union[ScaleResponse, SingleChoiceResponse, MultipleChoiceResponse, QuestionResponse]
+AnswerModel = Union[
+    ScaleResponse, SingleChoiceResponse, MultipleChoiceResponse, QuestionResponse
+]

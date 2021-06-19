@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import aioredis
 from neo4j import Transaction
 from pydantic import parse_obj_as
@@ -8,99 +10,35 @@ from .exceptions import DomainError
 from .schemas import (
     AnswerModel,
     AnswerResponseModel,
+    MultipleChoiceResponse,
     QuestionModel,
-    ResultModel, SingleChoiceResponse, ScaleResponse, MultipleChoiceResponse,
+    ResultModel,
+    ScaleResponse,
+    SingleChoiceResponse,
 )
 
 
-from .schemas import (
-    ScaleQuestion,
-    MultipleChoiceQuestion,
-    SingleChoiceQuestion,
-    BodySchemaQuestion,
-    ChoiceOption,
-    ScaleSection,
-)
+async def get_entry_question() -> Tuple[int, QuestionModel]:
+    def question_query(tx: Transaction):
+        get_initial = """
+        MATCH (q:Question {entry:true})
+        MATCH (_)<-[answers:ANSWER]-(q)
+        RETURN id(q), q, answers
+        """
+        return tx.run(get_initial).single()
 
-mock_questions = [
-    SingleChoiceQuestion(
-        id=0,
-        title="Первичное обращение?",
-        answers=[ChoiceOption(id=1, text="Да"), ChoiceOption(id=2, text="Нет")],
-    ),
-    SingleChoiceQuestion(
-        id=1,
-        title="Оцените уровень боли",
-        type="scale",
-        answers=[
-            ChoiceOption(
-                id="1,3",
-                text="<b>Слабая боль</b>\nПочти не мешает заниматься обычными делами",
-            ),
-            ChoiceOption(
-                id="4,6",
-                text="<b>Умеренная боль</b>\nМешает обычной жизни и не дает забыть о себе",
-            ),
-            ChoiceOption(
-                id="7,10",
-                text="<b>Сильная боль</b>\nЗатмевает всё, делает человека зависимым от помощи других",
-            ),
-        ],
-    ),
-    MultipleChoiceQuestion(
-        id=2,
-        title="Укажите, есть ли у вас следующие симптомы",
-        answers=[
-            ChoiceOption(id=1, text="Боли в левой половине грудной клетки"),
-            ChoiceOption(id=2, text="Продолжающееся кровотечение"),
-            ChoiceOption(id=3, text="Нарушение дыхания"),
-            ChoiceOption(
-                id=4,
-                text="Резкое головокружение или неустойчивость, не можете идти, вынуждены лечь",
-            ),
-            ChoiceOption(
-                id=5,
-                text="Тошнота, рвота, повышение температуры, связанные с употреблением конкретных продуктов",
-            ),
-        ],
-    ),
-    MultipleChoiceQuestion(
-        id=3,
-        title="Укажите, есть ли у вас следующие симптомы",
-        answers=[
-            ChoiceOption(id=1, text="Нарушение обоняния, повышение температуры"),
-            ChoiceOption(id=2, text="Жидкий стул больше пяти раз в день"),
-            ChoiceOption(
-                id=3, text="Температура выше 38 вместе с насморком или кашлем"
-            ),
-            ChoiceOption(
-                id=4, text="Пожелтение кожи, глазных белков и повышенная температура"
-            ),
-        ],
-    ),
-    SingleChoiceQuestion(
-        id=4,
-        title="Причина обращения - недавняя травма?",
-        answers=[ChoiceOption(id=1, text="Да"), ChoiceOption(id=2, text="Нет")],
-    ),
-    BodySchemaQuestion(
-        id=5,
-        title="Укажите что вас беспокоит",
-    ),
-    MultipleChoiceQuestion(
-        id=6,
-        title="Живот",
-        answers=[
-            ChoiceOption(id=1, text="Диарея"),
-            ChoiceOption(id=2, text="Боли"),
-        ],
-    ),
-]
+    result = await neo4j(question_query)
+    if len(result) == 0:
+        raise DomainError("No entry question found")
+    id_ = result["id(q)"]
+    q = dict(result["q"])
+    print(result["answers"])
+    q.pop("entry")
 
-
-def get_initial_question() -> QuestionModel:
-    # TODO: actual logic
-    return mock_questions[0]
+    return parse_obj_as(QuestionModel, {
+        "id": id_,
+        **q
+    })
 
 
 async def get_next_response(
@@ -115,40 +53,7 @@ async def get_next_response(
     if last_question_id != answer.question_id:
         raise DomainError(f"Last question id was not {answer.question_id}")
 
-    # TODO: actual logic
-
-    result = None
-    if isinstance(answer, SingleChoiceResponse) and answer.question_id == 0 and answer.answer_id == 2:
-        result = ResultModel(id=0)
-    if isinstance(answer, ScaleResponse) and answer.question_id == 1 and answer.value >= 7:
-        result = ResultModel(id=1)
-    if isinstance(answer, MultipleChoiceResponse) and answer.question_id == 2 and len(answer.answers) != 0:
-        result = ResultModel(id=1)
-    if isinstance(answer, MultipleChoiceResponse) and answer.question_id == 3 and len(answer.answers) != 0:
-        result = ResultModel(id=2)
-    if isinstance(answer, SingleChoiceResponse) and answer.question_id == 4 and answer.answer_id == 1:
-        result = ResultModel(id=3)
-    if result is not None:
-        await redis.delete(session_id)
-        return result
-    next_ = answer.question_id + 1
-    if next_ == 7:
-        await redis.delete(session_id)
-        return ResultModel(
-            title="хирург",
-            id=5,
-        )
-    await redis.rpush(session_id, next_)
-    return mock_questions[next_]
-
-
-async def get_entry_question() -> QuestionModel:
-    def question_query(tx: Transaction):
-        get_initial = "MATCH (q:Question {entry:true}) RETURN q"
-        return tx.run(get_initial).single()
-
-    result = await neo4j(question_query)
-    if len(result) == 0:
-        raise DomainError("No entry question found")
-
-    return parse_obj_as(QuestionModel, result[0])
+    if last_question_id == -1:
+        entry_question = await get_entry_question()
+        await redis.rpush(session_id, entry_question.id)
+        return entry_question

@@ -10,7 +10,8 @@ def main() -> None:
     print(info("Generating questionnaire"))
 
     def generator(tx):
-        tx_return = tx.run("""
+        tx_return = tx.run(
+            """
         CREATE (RepeatedVisit:Result {id:0})
         CREATE (Ambulance:Result {id:1})
         CREATE (HouseCall:Result {id:2})
@@ -68,7 +69,8 @@ def main() -> None:
         (Stomach)-[:ANSWER {text:"Боли"}]->(Surgeon)
         
         RETURN SymptomsFirst
-        """)
+        """
+        )
         return tx_return.single()
 
     result = neo4j.run_sync(generator)

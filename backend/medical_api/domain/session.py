@@ -1,10 +1,7 @@
-from typing import Tuple
 from uuid import uuid4
 
 import aioredis
 
-from .questions import get_initial_question
-from .schemas import Question
 from .consts import SESSION_TTL
 
 
