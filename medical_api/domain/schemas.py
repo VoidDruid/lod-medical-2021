@@ -4,11 +4,11 @@ from pydantic import BaseModel
 
 
 class ChoiceOption(BaseModel):
-    id: int
+    id: str
     text: str
 
 
-class ScaleItem(BaseModel):
+class ScaleSection(BaseModel):
     min: int
     max: int
     description: str
@@ -36,7 +36,7 @@ class ScaleQuestion(Question):
     min: int
     max: int
     step: int = 1
-    items: List[ScaleItem]
+    sections: List[ScaleSection]
 
 
 class ChoiceQuestion(Question):
@@ -49,7 +49,6 @@ class SingleChoiceQuestion(ChoiceQuestion):
 
 class MultipleChoiceQuestion(ChoiceQuestion):
     type = "multiple"
-    max_choices: int = 0
 
 
 class DoctorChoice(BaseModel):
@@ -59,7 +58,7 @@ class DoctorChoice(BaseModel):
 
 
 class ResultModel(BaseResponse):
-    items: Optional[List[DoctorChoice]]
+    choices: Optional[List[DoctorChoice]]
 
 
 QUESTION_MODELS = (
@@ -91,4 +90,4 @@ class ScaleResponse(QuestionResponse):
     value: int
 
 
-AnswerModel = Union[ScaleResponse, SingleChoiceResponse, MultipleChoiceResponse]
+AnswerModel = Union[ScaleResponse, SingleChoiceResponse, MultipleChoiceResponse, QuestionResponse]

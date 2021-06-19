@@ -18,7 +18,7 @@ from .schemas import (  # isort: skip
     SingleChoiceQuestion,
     BodySchemaQuestion,
     ChoiceOption,
-    ScaleItem,
+    ScaleSection,
 )
 
 mock_questions = [
@@ -27,26 +27,22 @@ mock_questions = [
         title="Первичное обращение?",
         answers=[ChoiceOption(id=1, text="Да"), ChoiceOption(id=1, text="Нет")],
     ),
-    ScaleQuestion(
+    SingleChoiceQuestion(
         id=1,
         title="Оцените уровень боли?",
-        min=1,
-        max=1,
-        items=[
-            ScaleItem(
-                min=1,
-                max=3,
-                description="\bСлабая боль\b\nПочти не мешает заниматься обычными делами",
+        type="scale",
+        answers=[
+            ChoiceOption(
+                id="1,3",
+                text="\bСлабая боль\b\nПочти не мешает заниматься обычными делами",
             ),
-            ScaleItem(
-                min=4,
-                max=6,
-                description="\bУмеренная боль\b\nМешает обычной жизни и не дает забыть о себе",
+            ChoiceOption(
+                id="4,6",
+                text="\bУмеренная боль\b\nМешает обычной жизни и не дает забыть о себе",
             ),
-            ScaleItem(
-                min=7,
-                max=10,
-                description="\bСильная боль\b\nЗатмевает всё, делает человека зависимым от помощи других",
+            ChoiceOption(
+                id="7,10",
+                text="\bСильная боль\b\nЗатмевает всё, делает человека зависимым от помощи других",
             ),
         ],
     ),
@@ -112,6 +108,7 @@ async def get_next_response(
     last_question_id = await redis.lrange(session_id, -1, -1)
     if last_question_id is None or len(last_question_id) == 0:
         raise DomainError(f"session_id {session_id} does not exist")
+
     last_question_id = int(last_question_id[0])
 
     if last_question_id != answer.question_id:
@@ -123,7 +120,7 @@ async def get_next_response(
         await redis.delete(session_id)
         return ResultModel(
             title="Хирург",
-            items=[
+            choices=[
                 DoctorChoice(name="Айболит", clinic="Африка"),
             ],
         )

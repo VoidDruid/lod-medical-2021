@@ -3,6 +3,7 @@
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from fastapi import APIRouter, FastAPI
+from fastapi.datastructures import DefaultPlaceholder
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.responses import UJSONResponse
 from loguru import logger
@@ -90,7 +91,8 @@ class Api(APIRouter):
     def api_route(
         self, *args: Any, **kwargs: Any
     ) -> Callable[..., Any]:  # pylint: disable=W0221
-        kwargs["response_class"] = FormedResponse
+        if type(kwargs["response_class"]) == DefaultPlaceholder:
+            kwargs["response_class"] = FormedResponse
         return super().api_route(*args, **kwargs)
 
 
