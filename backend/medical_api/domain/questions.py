@@ -134,9 +134,15 @@ async def get_next_response(
     next_ = answer.question_id + 1
     if next_ == 7:
         await redis.delete(session_id)
-        return ResultModel(
+        return SingleChoiceQuestion(
             title="хирург",
             id=5,
+            answers=[
+                ChoiceOption(
+                    id=1,
+                    text="52ая поликлиника",
+                )
+            ]
         )
     await redis.rpush(session_id, next_)
     return mock_questions[next_]
