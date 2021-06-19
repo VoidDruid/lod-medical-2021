@@ -6,12 +6,13 @@ from neo4j import Transaction
 
 from dataplane import neo4j
 from domain.schemas import (
+    BodySchemaQuestion,
     MultipleChoiceQuestion,
     MultipleChoiceResponse,
     ScaleQuestion,
     ScaleResponse,
     SingleChoiceQuestion,
-    SingleChoiceResponse, BodySchemaQuestion,
+    SingleChoiceResponse,
 )
 from service.api import Api
 

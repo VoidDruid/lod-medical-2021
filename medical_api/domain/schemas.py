@@ -62,7 +62,12 @@ class ResultModel(BaseResponse):
     items: Optional[List[DoctorChoice]]
 
 
-QUESTION_MODELS = (ScaleQuestion, SingleChoiceQuestion, MultipleChoiceQuestion, BodySchemaQuestion)
+QUESTION_MODELS = (
+    ScaleQuestion,
+    SingleChoiceQuestion,
+    MultipleChoiceQuestion,
+    BodySchemaQuestion,
+)
 QuestionModel = Union[QUESTION_MODELS]
 AnswerResponseModel = Union[(*QUESTION_MODELS, ResultModel)]
 

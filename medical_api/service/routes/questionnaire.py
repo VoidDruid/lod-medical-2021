@@ -39,5 +39,7 @@ async def session_start(redis: aioredis.Redis = Depends(get_redis)):
 
 
 @api.post("/", response_model=AnswerResponseModel)
-async def questions_endpoint(answer: AnswerModel, session_id: str, redis: aioredis.Redis = Depends(get_redis)):
+async def questions_endpoint(
+    answer: AnswerModel, session_id: str, redis: aioredis.Redis = Depends(get_redis)
+):
     return await get_next_response(redis, session_id, answer)
