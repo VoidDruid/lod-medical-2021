@@ -6,13 +6,12 @@ from .exceptions import DomainError
 from .schemas import (
     AnswerModel,
     AnswerResponseModel,
-    DoctorChoice,
     QuestionModel,
-    ResultModel,
+    ResultModel, SingleChoiceResponse, ScaleResponse, MultipleChoiceResponse,
 )
 
 
-from .schemas import (  # isort: skip
+from .schemas import (
     ScaleQuestion,
     MultipleChoiceQuestion,
     SingleChoiceQuestion,
@@ -25,30 +24,30 @@ mock_questions = [
     SingleChoiceQuestion(
         id=0,
         title="Первичное обращение?",
-        answers=[ChoiceOption(id=1, text="Да"), ChoiceOption(id=1, text="Нет")],
+        answers=[ChoiceOption(id=1, text="Да"), ChoiceOption(id=2, text="Нет")],
     ),
     SingleChoiceQuestion(
         id=1,
-        title="Оцените уровень боли?",
+        title="Оцените уровень боли",
         type="scale",
         answers=[
             ChoiceOption(
                 id="1,3",
-                text="\bСлабая боль\b\nПочти не мешает заниматься обычными делами",
+                text="<b>Слабая боль</b>\nПочти не мешает заниматься обычными делами",
             ),
             ChoiceOption(
                 id="4,6",
-                text="\bУмеренная боль\b\nМешает обычной жизни и не дает забыть о себе",
+                text="<b>Умеренная боль</b>\nМешает обычной жизни и не дает забыть о себе",
             ),
             ChoiceOption(
                 id="7,10",
-                text="\bСильная боль\b\nЗатмевает всё, делает человека зависимым от помощи других",
+                text="<b>Сильная боль</b>\nЗатмевает всё, делает человека зависимым от помощи других",
             ),
         ],
     ),
     MultipleChoiceQuestion(
         id=2,
-        title="Укажетие, есть ли у вас следующие симптомы",
+        title="Укажите, есть ли у вас следующие симптомы",
         answers=[
             ChoiceOption(id=1, text="Боли в левой половине грудной клетки"),
             ChoiceOption(id=2, text="Продолжающееся кровотечение"),
@@ -79,8 +78,8 @@ mock_questions = [
     ),
     SingleChoiceQuestion(
         id=4,
-        title="Первичное обращение?",
-        answers=[ChoiceOption(id=1, text="Да"), ChoiceOption(id=1, text="Нет")],
+        title="Причина обращения - недавняя травма?",
+        answers=[ChoiceOption(id=1, text="Да"), ChoiceOption(id=2, text="Нет")],
     ),
     BodySchemaQuestion(
         id=5,
@@ -115,15 +114,25 @@ async def get_next_response(
         raise DomainError(f"Last question id was not {answer.question_id}")
 
     # TODO: actual logic
+
+    result = None
+    if isinstance(answer, SingleChoiceResponse) and answer.question_id == 0 and answer.answer_id == 2:
+        result = ResultModel(id=0)
+    if isinstance(answer, ScaleResponse) and answer.question_id == 1 and answer.value >= 7:
+        result = ResultModel(id=1)
+    if isinstance(answer, MultipleChoiceResponse) and answer.question_id in (2, 3) and len(answer.answers) != 0:
+        result = ResultModel(id=2)
+    if isinstance(answer, SingleChoiceResponse) and answer.question_id == 4 and answer.answer_id == 1:
+        result = ResultModel(id=3)
+    if result is not None:
+        await redis.delete(session_id)
+        return result
     next_ = answer.question_id + 1
     if next_ == 7:
         await redis.delete(session_id)
         return ResultModel(
-            title="Хирург",
-            choices=[
-                DoctorChoice(name="Айболит", clinic="Африка"),
-            ],
+            title="хирург",
+            id=5,
         )
-
     await redis.rpush(session_id, next_)
     return mock_questions[next_]

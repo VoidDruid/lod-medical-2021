@@ -18,13 +18,13 @@ class ScaleSection(BaseModel):
 
 
 class BaseResponse(BaseModel):
-    title: str
+    title: Optional[str] = None
+    type: str
+    id: int
 
 
 class Question(BaseResponse):
-    type: str
-    id: int
-    text: str = ""
+    text: Optional[str] = None
 
 
 class BodySchemaQuestion(Question):
@@ -51,14 +51,8 @@ class MultipleChoiceQuestion(ChoiceQuestion):
     type = "multiple"
 
 
-class DoctorChoice(BaseModel):
-    name: str
-    clinic: str
-    avatar: str = ""
-
-
 class ResultModel(BaseResponse):
-    choices: Optional[List[DoctorChoice]]
+    type = "finish"
 
 
 QUESTION_MODELS = (
