@@ -22,7 +22,7 @@ class SessionResponse(BaseModel):
     session_id: str
 
 
-@api.post("/init", response_model=SessionResponse, response_class=UJSONResponse)
+@api.post("/init", response_model=SessionResponse)
 async def session_start(redis: aioredis.Redis = Depends(get_redis)):
     return {
         "session_id": await create_session(redis),
