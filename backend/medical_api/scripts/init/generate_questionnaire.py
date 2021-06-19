@@ -28,7 +28,46 @@ def main() -> None:
         CREATE (Urologist:Specialty {id:9, name:"уролог"})
         CREATE (Oncologist:Specialty {id:10, name:"онколог"})
 
-        CREATE (FirstTime:Question {}) 
+        CREATE (FirstTime:Question {title:"Первичное обращение?", type: "single", entry:true})
+        CREATE (PainScale:Question {title:"Оцените уровень боли", min:1, max:10, type:"scale"})
+        CREATE (SymptomsFirst:Question {title:"Укажите, есть ли у вас следующие симптомы", type:"multiple"})
+        CREATE (SymptomsSecond:Question {title:"Укажите, есть ли у вас следующие симптомы", type:"multiple"})
+        CREATE (Trauma:Question {title:"Причина обращения - недавняя травма?", type:"single"})
+        
+        CREATE (Body:Question {title:"Укажите, что вас беспокоит", type:"body"})
+        CREATE (Stomach:Question {title:"Живот", type:"multiple"})
+        
+        CREATE
+        (FirstTime)-[:ANSWER {text:"Нет"}]->(RepeatedVisit),
+        (FirstTime)-[:ANSWER {text:"Да"}]->(PainScale),
+        
+        (PainScale)-[:ANSWER {min:1, max:3, description:"<b>Слабая боль</b>\\nПочти не мешает заниматься обычными делами"}]->(SymptomsFirst),
+        (PainScale)-[:ANSWER {min:4, max:6, description:"<b>Умеренная боль</b>\\nМешает обычной жизни и не дает забыть о себе"}]->(SymptomsFirst),
+        (PainScale)-[:ANSWER {min:7, max:10, description:"<b>Сильная боль</b>\\nЗатмевает всё, делает человека зависимым от помощи других"}]->(Ambulance),
+        
+        (SymptomsFirst)-[:ANSWER {text:"Боли в левой половине грудной клетки"}]->(Ambulance),
+        (SymptomsFirst)-[:ANSWER {text:"Продолжающееся кровотечение"}]->(Ambulance),
+        (SymptomsFirst)-[:ANSWER {text:"Нарушение дыхания"}]->(Ambulance),
+        (SymptomsFirst)-[:ANSWER {text:"Резкое головокружение или неустойчивость, не можете идти, вынуждены лечь"}]->(Ambulance),
+        (SymptomsFirst)-[:ANSWER {text:"Тошнота, рвота, повышение температуры, связанные с употреблением конкретных продуктов"}]->(Ambulance),
+        (SymptomsFirst)-[:ANSWER {type:"empty"}]->(SymptomsSecond),
+        
+        (SymptomsSecond)-[:ANSWER {text:"Нарушение обоняния, повышение температуры"}]->(HouseCall),
+        (SymptomsSecond)-[:ANSWER {text:"Жидкий стул больше пяти раз в день"}]->(HouseCall),
+        (SymptomsSecond)-[:ANSWER {text:"Температура выше 38 вместе с насморком или кашлем"}]->(HouseCall),
+        (SymptomsSecond)-[:ANSWER {text:"Пожелтение кожи, глазных белков и повышенная температура"}]->(HouseCall),
+        (SymptomsSecond)-[:ANSWER {type:"empty"}]->(Trauma),
+        
+        (Trauma)-[:ANSWER {text:"Нет"}]->(Body),
+        (Trauma)-[:ANSWER {text:"Да"}]->(TraumaCenter),
+        
+        (Body)-[:ANSWER {id: 3}]->(Stomach),
+        
+        (Stomach)-[:ANSWER {text:"Диарея"}]->(Infectologist),
+        (Stomach)-[:ANSWER {text:"Отрыжка, изжога, горечь во рту"}]->(Gastroenterologist),
+        (Stomach)-[:ANSWER {text:"Боли"}]->(Surgeon)
+        
+        RETURN SymptomsFirst
         """)
         return tx_return.single()
 

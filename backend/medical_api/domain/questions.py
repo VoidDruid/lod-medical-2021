@@ -1,4 +1,6 @@
 import aioredis
+from neo4j import Transaction
+from pydantic import parse_obj_as
 
 from dataplane import neo4j
 
@@ -51,7 +53,7 @@ mock_questions = [
         answers=[
             ChoiceOption(id=1, text="Боли в левой половине грудной клетки"),
             ChoiceOption(id=2, text="Продолжающееся кровотечение"),
-            ChoiceOption(id=3, text="Нарушение дыханият"),
+            ChoiceOption(id=3, text="Нарушение дыхания"),
             ChoiceOption(
                 id=4,
                 text="Резкое головокружение или неустойчивость, не можете идти, вынуждены лечь",
@@ -64,7 +66,7 @@ mock_questions = [
     ),
     MultipleChoiceQuestion(
         id=3,
-        title="Укажетие, есть ли у вас следующие симптомы",
+        title="Укажите, есть ли у вас следующие симптомы",
         answers=[
             ChoiceOption(id=1, text="Нарушение обоняния, повышение температуры"),
             ChoiceOption(id=2, text="Жидкий стул больше пяти раз в день"),
@@ -120,7 +122,9 @@ async def get_next_response(
         result = ResultModel(id=0)
     if isinstance(answer, ScaleResponse) and answer.question_id == 1 and answer.value >= 7:
         result = ResultModel(id=1)
-    if isinstance(answer, MultipleChoiceResponse) and answer.question_id in (2, 3) and len(answer.answers) != 0:
+    if isinstance(answer, MultipleChoiceResponse) and answer.question_id == 2 and len(answer.answers) != 0:
+        result = ResultModel(id=1)
+    if isinstance(answer, MultipleChoiceResponse) and answer.question_id == 3 and len(answer.answers) != 0:
         result = ResultModel(id=2)
     if isinstance(answer, SingleChoiceResponse) and answer.question_id == 4 and answer.answer_id == 1:
         result = ResultModel(id=3)
@@ -136,3 +140,15 @@ async def get_next_response(
         )
     await redis.rpush(session_id, next_)
     return mock_questions[next_]
+
+
+async def get_entry_question() -> QuestionModel:
+    def question_query(tx: Transaction):
+        get_initial = "MATCH (q:Question {entry:true}) RETURN q"
+        return tx.run(get_initial).single()
+
+    result = await neo4j(question_query)
+    if len(result) == 0:
+        raise DomainError("No entry question found")
+
+    return parse_obj_as(QuestionModel, result[0])
