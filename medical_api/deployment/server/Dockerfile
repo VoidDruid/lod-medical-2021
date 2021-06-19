@@ -23,9 +23,11 @@ RUN poetry install $(if [ "${RUN_LEVEL}" = "production" ]; then echo "--no-dev";
 
 # Application
 COPY settings ./settings
-COPY database ./database
+COPY dataplane ./dataplane
 COPY common ./common
 COPY service ./service
+COPY crud ./crud
+COPY domain ./domain
 
 COPY deployment/pre_start.py ./
 COPY deployment/server/server.sh deployment/server/gunicorn_conf.py ./

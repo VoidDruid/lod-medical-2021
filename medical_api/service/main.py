@@ -22,8 +22,9 @@ api_v1 = Api()
 api_v1.include_router(questionnaire_api, prefix="/q")
 api_v1.include_router(temp_api, prefix="/temp")
 
+
 @app.get("/healthz", tags=["health check"])
-async def root() -> Dict[str, str]:
+async def root() -> Dict[str, bool]:
     """Health check endpoint"""
     return {"ok": True}
 

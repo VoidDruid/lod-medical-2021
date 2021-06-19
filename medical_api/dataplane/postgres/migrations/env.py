@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Connectable, Engine
 
-from database.base import metadata as target_metadata
+from dataplane.postgres.base import metadata as target_metadata
 from settings import database_settings
 
 

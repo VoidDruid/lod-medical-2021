@@ -15,23 +15,11 @@ class Settings(BaseSettings):
 
 
 class DatabaseSettings(BaseSettings):
-    username: str = Field(
-        ...,
-        description="Имя пользователя для подключения к БД",
-    )
-    password: str = Field(
-        ...,
-        description="Пароль для подключения к БД",
-    )
-    url: AnyUrl = Field(
-        ...,
-        description="URL (DSN) путь для подключения к базе данных",
-    )
-    db_schema: str = Field(
-        ...,
-        description="Название схемы БД",
-    )
-    db_name: str = Field(..., description="Имя БД")
+    username: str
+    password: str
+    url: AnyUrl
+    db_schema: str
+    db_name: str
 
     @property
     def full_url_async(self) -> str:
@@ -68,10 +56,36 @@ class DatabaseSettings(BaseSettings):
         extra = "ignore"
 
 
+class RedisSettings(BaseSettings):
+    uri: AnyUrl
+
+    class Config:
+        env_prefix = "redis_"
+        env_file_encoding = "utf8"
+        env_file = os.getenv("REDIS_ENV_FILE", "./.env.local")
+        extra = "ignore"
+
+
+class Neo4jSettings(BaseSettings):
+    url: AnyUrl
+    user: str
+    password: str
+
+    class Config:
+        env_prefix = "NEO4J_"
+        env_file_encoding = "utf8"
+        env_file = os.getenv("NEO4J_ENV_FILE", "./.env.local")
+        extra = "ignore"
+
+
 settings = Settings()
 database_settings = DatabaseSettings()
+redis_settings = RedisSettings()
+neo4j_settings = Neo4jSettings()
 
 # For convinience
 DEBUG = settings.DEBUG
 APP_NAME = settings.APP_NAME
 APP_VERSION = settings.APP_VERSION
+
+RUN_LEVEL = os.getenv("RUN_LEVEL", "dev")

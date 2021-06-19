@@ -1,7 +1,8 @@
 from sqlalchemy import inspect
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
 
-from . import Base, Session
+from .base import Base
 
 
 def upsert(db: Session, model: Base, **values):
