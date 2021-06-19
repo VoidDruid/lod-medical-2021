@@ -6,7 +6,10 @@ ALEMBIC = $(PYTHONPATH) alembic -c alembic.ini
 # Params
 DOWNGRADE_DEFAULT = -1
 
-.PHONY: migrations db_upgrade db_downgrade pretty help
+.PHONY: run-script migrations db_upgrade db_downgrade pretty help
+
+run-script:  ## Запустить скрипты
+	${PYTHON} -m scripts
 
 migrations:  ## Генерация файлов миграций по изменениям моделей БД
 	$(ALEMBIC) revision --autogenerate -m "$(message)"
