@@ -112,7 +112,6 @@ async def get_next_response(
         if len(answer.answers) >= 1:
             next_ = await get_next_for_answer_id(answer.answers[0])
         else:
-            print("IN")
             next_ = await get_object(f"""
             MATCH (last_q) WHERE ID(last_q) = {last_question_id}
             MATCH (last_q)-[a_:ANSWER {{type:"empty"}}]->(q)
