@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class ChoiceOption(BaseModel):
     id: str
-    text: str
+    text: Optional[str] = None
 
 
 class ScaleSection(BaseModel):
