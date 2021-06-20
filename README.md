@@ -40,7 +40,7 @@ NOTE: директория `mobile-app` добавлен как git submodule и
 
 Swagger для API сервиса доступен [здесь](http://45.132.19.51/api).
 
-Apk прототипа - [тут](TODO).
+Apk прототипа - [тут](https://drive.google.com/file/d/1oS251blzYiUo6qyglJ33FV_gLoG0hPMn/view?usp=sharing).
 
 Запуск проекта
 ------------
